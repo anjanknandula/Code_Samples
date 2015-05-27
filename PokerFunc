@@ -1,0 +1,146 @@
+#!/bin/python
+#functions for poker game
+
+numlist = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"] # we want these to be strings
+suitlist = ["H","D","S","C"]
+
+def mysplit(s): #This function takes '5C' and returns ['5', 'C']
+	head = s.rstrip('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+	tail = s[len(head):]
+	return head, tail
+#end mysplit
+
+def ispair(hand):
+	status = ""
+	global numlist
+        counter = []  # a blank array
+	for k in range(0,len(numlist)): #loops through 2 through A
+		for i in range(0,5): #loop through hand
+                	for j in range(i+1,5): # loop through hand again
+                                if numlist[k] in hand[i] and numlist[k] in hand[j]:
+                                        counter.append(numlist[k])
+	if counter != []:
+		maximum = str(max(counter))
+        	status = "ispair %s" % (maximum)
+	else :
+		status = "isnotpair"
+	return status
+ #returns the highest pair
+#if you're paying attention, you'll realize is pair is true for a three of a kind and four of a kind
+#but these hands override is pair and need ispair to be true, hence it's no problem since well eventually
+#check for isfourkind first, then isthreekind, then ispair
+
+#endispair
+
+def istwopair(hand):
+        global numlist
+	counter = [] #I like to call my blank arrays counter
+	for k in numlist:
+        	for i in range(0,5):
+                	for j in range(i,5):
+                                if k in hand[i] and k in hand[j]:
+                                        counter.append(k) #same as before, append if k shows up more than once
+        if len(counter) < 2: #technically this isn't right since it will include 4 of a kind
+		return "isnottwopair" #but recall 4 of a kind > 2 pair, so the player wins anyway
+        else:
+                return "istwopair %s" % (max(counter)) 
+#returns the highest pair (note that counter must have 2 or more elements for istwopair to be true!)
+#endistwopair
+
+def isthreekind(hand):
+	global numlist
+	counter = []
+	for k in numlist:
+        	for i in range(0,5):
+                	for j in range(i,5):
+                                if k in hand[i] and k in hand[j]:
+                                        counter.append(k)
+				else:
+					counter = [] #we need 3 matches for a given k, reset if not
+        if counter == [] :
+                return "isnotthreekind"
+        else:
+                return "isthreekind %s" % (max(counter)) #this returns the value of the threekind
+#since a three of a kind of jacks beats a three of a kind of 8's, this last value is important in a tie
+#endisthreekind
+
+def isstraight(hand):
+	global numlist
+	tmpar = [0 for x in range (0,5)] #a temporary array of 5 elements
+	for i in range (0,5):
+		tmpar[i] = mysplit(hand[i])[0] #tmpar now only contails the numerical part of hands (i.e. 2,3,J,Q, etc.)
+	
+	for i in range (0,5): #Let's now assign numerical values to the letters
+		if tmpar[i] == "J":
+			tmpar[i] = "11"
+		if tmpar[i] == "Q" :
+			tmpar[i] = "12"
+		if tmpar[i] == "K" :
+			tmpar[i] = "13"
+		if tmpar[i] == "A" :
+			tmpar[i] = "14"
+	
+	tmpar.sort()
+	for j in range (0,4):
+		sampval = int(tmpar[j+1]) - int(tmpar[j])
+		if sampval == 1 : #checks if tmpar increases in increments of 1
+			straightstr = "isstraight %s" % (max(tmpar)) #returns the highest card in the straight
+		else :
+			straightstr = "isnotstraight"	
+	return straightstr
+#endisstraight
+
+def isflush(hand):
+	tmpar = [0 for x in range (0,5)] # a blank array
+        for i in range (0,5):
+                tmpar[i] = mysplit(hand[i])[1] #tmpar now only contains only the suits
+        for i in range (0,4):
+		if tmpar[i] is not tmpar[i+1] :#checks that all of tmpars elems are the same
+			notflush = True
+                else :
+			notflush = False
+	if notflush == False:
+		tmpar2 = [0 for x in range(0,5)]
+		for i in range (0,5):
+			tmpar2[i] = mysplit(hand[i])[0] #returns the card values w/o suits
+		flushhigh = max(tmpar2) #gives the max card value
+		return "isflush %s" % (flushhigh) #returns the highest card in the flush#
+	else :
+		return "isnotflush"  
+#endisflush
+
+def isfullhouse(hand):
+	global numlist
+	# A fullhouse is one pair and a three of a kind, so we already have the functions for this
+	if ispair(hand) != "isnotpair" and isthreekind(hand) != "isnotthreekind" :
+		return "isfullhouse" + isthreekind(hand).split()[1] #this returns the highest 3 of a kind (which is all you need to determine who wins the full house)
+	else :
+		return "isnotfullhouse"
+#endisfullhouse
+
+def isfourkind(hand):
+#by now we know how to do this...
+	global numlist
+	counter = []
+        for k in numlist:
+                for i in range(0,5):
+                        for j in range(i,5):
+                                if k in hand[i] and k in hand[j]:
+                                        counter.append(k)
+                                else:
+                                        counter = [] #we need 4 matches for a given k, reset if not
+        if counter == [] :
+                return "isnotfourkind"
+        else:
+                return "isfourkindind %d" % (max(counter))
+#endisfourkind	
+
+def isstraightflush(hand):
+# A straight flush must be a flush and a straight, as long as both of these are true, then we're fine
+	global numlist
+	if isflush(hand).split()[0] == "isflush" and isstraight(hand).split()[0] == "isstraight" :
+		sfhigh = isflush(hand).split()[1]
+		return "isstraightflush %s" % (sfhigh) #returns the highst value of hte straightflush
+	else :
+		return "isnotstraightflush"
+#end isstraightflush
